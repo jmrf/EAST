@@ -71,7 +71,8 @@ class GeneratorEnqueuer():
                     # Reset random seed else all children processes
                     # share the same seed
                     np.random.seed(self.random_seed)
-                    thread = multiprocessing.Process(target=data_generator_task)
+                    thread = multiprocessing.Process(
+                        target=data_generator_task)
                     thread.daemon = True
                     if self.random_seed is not None:
                         self.random_seed += 1

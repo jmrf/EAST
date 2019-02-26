@@ -2,19 +2,36 @@
 
 ### Introduction
 
-This is mainly a fork repackaging the codebase [east/EAST](https://github.com/argman/EAST)
+This is mainly a fork repackaging [east/EAST](https://github.com/argman/EAST) code-base making it more accessible as a package to other pieces of codes to import and experiment.
+
+
+
+---------------
+
+
 
 This is a tensorflow re-implementation of [EAST: An Efficient and Accurate Scene Text Detector](https://arxiv.org/abs/1704.03155v2).
+
 The features are summarized blow:
 
--   Online demo + http://east.zxytim.com/ + [Result example](http://east.zxytim.com/?r=48e5020a-7b7f-11e7-b776-f23c91e0703e) + CAVEAT: There's only one cpu core on the demo server. Simultaneous access will degrade response time.
+-   [Online demo](http://east.zxytim.com/ ) + [Result example](http://east.zxytim.com/?r=48e5020a-7b7f-11e7-b776-f23c91e0703e) 
+    CAVEAT: There's only one cpu core on the demo server. 
+    Simultaneous access will degrade response time.
 -   Only **RBOX** part is implemented.
 -   A fast Locality-Aware NMS in C++ provided by the paper's author.
--   The pre-trained model provided achieves **80.83** F1-score on ICDAR 2015
-    Incidental Scene Text Detection Challenge using only training images from ICDAR 2015 and 2013.
-    see [here](http://rrc.cvc.uab.es/?ch=4&com=evaluation&view=method_samples&task=1&m=29855&gtv=1) for the detailed results.
--   Differences from original paper + Use ResNet-50 rather than PVANET + Use dice loss (optimize IoU of segmentation) rather than balanced cross entropy + Use linear learning rate decay rather than staged learning rate decay
--   Speed on 720p (resolution of 1280x720) images: + Now + Graphic card: GTX 1080 Ti + Network fprop: **~50 ms** + NMS (C++): **~6ms** + Overall: **~16 fps** + Then + Graphic card: K40 + Network fprop: ~150 ms + NMS (python): ~300ms + Overall: ~2 fps
+-   The pre-trained model provided achieves **80.83** F1-score on ICDAR 2015 (Incidental Scene Text Detection Challenge) using only training images from ICDAR 2015 and 2013. See [here](http://rrc.cvc.uab.es/?ch=4&com=evaluation&view=method_samples&task=1&m=29855&gtv=1) for the detailed results.
+-   Differences from original paper:
+    -   Use ResNet-50 rather than PVANET
+    -   Use dice loss (optimize IoU of segmentation) rather than balanced cross entropy
+    -   Use linear learning rate decay rather than staged learning rate decay
+-   Speed on 720p (resolution of 1280x720) images:
+    -   Now 
+        -   Graphic card: GTX 1080 Ti + Network fprop: **~50 ms**
+        -   NMS (C++): **~6ms** 
+        -   Overall: **~16 fps**
+    -   Then
+        -    Graphic card: K40 + Network fprop: ~150 ms
+        -   NMS (python): ~300ms + Overall: ~2 fps
 
 Thanks for the author's ([@zxytim](https://github.com/zxytim)) help!
 Please cite his [paper](https://arxiv.org/abs/1704.03155v2) if you find this useful.
@@ -30,8 +47,27 @@ Please cite his [paper](https://arxiv.org/abs/1704.03155v2) if you find this use
 
 ### Installation
 
-1. Any version of tensorflow version > 1.0 should be ok.
-2. `bash sudo apt-get install libgeos-dev && pip install -r requirements.txt`
+The Makefile `east/lanms/` has been modified to avoid issues with gcc < 6 and **-fno-plt** flag including hardcoded paths.
+If you find the same issue, please do the following:
+```bash
+	python3-config --cflags
+```
+Copy the output, remove `-fno-plt` and paste in the Makefile as:
+`CXXFLAGS = <output-from-previous-command>`
+
+Then:
+
+```bash
+cd east/lanms
+make
+```
+
+Finally:
+
+```bash
+	sudo apt-get install libgeos-dev  # required for Shapely
+	pip install -r requirements.txt
+```
 
 ### Download
 
@@ -43,10 +79,15 @@ Please cite his [paper](https://arxiv.org/abs/1704.03155v2) if you find this use
 If you want to train the model, you should provide the dataset path, in the dataset path, a separate gt text file should be provided for each image
 and run
 
-```
-python multigpu_train.py --gpu_list=0 --input_size=512 --batch_size_per_gpu=14 --checkpoint_path=/tmp/east_icdar2015_resnet_v1_50_rbox/ \
---text_scale=512 --training_data_path=/data/ocr/icdar2015/ --geometry=RBOX --learning_rate=0.0001 --num_readers=24 \
---pretrained_model_path=/tmp/resnet_v1_50.ckpt
+```bash
+python -m east.multigpu_train \
+	--gpu_list=0 \
+	--input_size=512 \
+	--batch_size_per_gpu=14 \
+	--checkpoint_path=/tmp/east_icdar2015_resnet_v1_50_rbox/ \
+	--text_scale=512 --training_data_path=/data/ocr/icdar2015/ \
+	--geometry=RBOX --learning_rate=0.0001 --num_readers=24 \
+	--pretrained_model_path=/tmp/resnet_v1_50.ckpt
 ```
 
 If you have more than one gpu, you can pass gpu ids to gpu_list(like --gpu_list=0,1,2,3)
@@ -58,14 +99,14 @@ See the examples in training_samples/**
 
 If you've downloaded the pre-trained model, you can setup a demo server by
 
-```
-python3 run_demo_server.py --checkpoint-path /tmp/east_icdar2015_resnet_v1_50_rbox/
+```bash
+python east.run_demo_server \
+	--checkpoint-path /checkpoints/east_icdar2015_resnet_v1_50_rbox/
 ```
 
 Then open http://localhost:8769 for the web demo. Notice that the URL will change after you submitted an image.
 Something like `?r=49647854-7ac2-11e7-8bb7-80000210fe80` appends and that makes the URL persistent.
-As long as you are not deleting data in `static/results`, you can share your results to your friends using
-the same URL.
+As long as you are not deleting data in `static/results`, you can share your results using the same URL.
 
 URL for example below: http://east.zxytim.com/?r=48e5020a-7b7f-11e7-b776-f23c91e0703e
 ![web-demo](demo_images/web-demo.png)
@@ -74,9 +115,12 @@ URL for example below: http://east.zxytim.com/?r=48e5020a-7b7f-11e7-b776-f23c91e
 
 run
 
-```
-python eval.py --test_data_path=/tmp/images/ --gpu_list=0 --checkpoint_path=/tmp/east_icdar2015_resnet_v1_50_rbox/ \
---output_dir=/tmp/
+```bash
+python eval.py \
+	--test_data_path=/tmp/images/ \
+	--gpu_list=0 \
+	--checkpoint_path=/tmp/east_icdar2015_resnet_v1_50_rbox/ \
+	--output_dir=/tmp/
 ```
 
 a text file will be then written to the output path.
