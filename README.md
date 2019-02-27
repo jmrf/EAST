@@ -28,6 +28,13 @@ To download a pre-trained model checkpoint please see the [download section](#Do
 
 
 
+**Known issues**:
+
+* tf.app.flags conflicts with argparse commandline arguments when importing model
+* There are several hardcoded paths all around still (eg: /static/results/...)
+
+
+
 ---
 
 This is a tensorflow re-implementation of [EAST: An Efficient and Accurate Scene Text Detector](https://arxiv.org/abs/1704.03155v2).
