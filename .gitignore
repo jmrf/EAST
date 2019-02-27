@@ -104,5 +104,5 @@ ENV/
 *.swp
 
 # result files for demo
-static/results
+east/static/results
 checkpoints/

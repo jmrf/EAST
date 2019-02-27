@@ -2,7 +2,31 @@
 
 ### Introduction
 
-This is mainly a fork repackaging [argman/EAST](https://github.com/argman/EAST) code-base making it more accessible as a package to other pieces of codes to import and experiment.
+This is a refactoring and packaging from [argman/EAST](https://github.com/argman/EAST) code-base. 
+With few exceptions the model stays pretty much the same but the code-base has been heavily re-factored to allow for python packaging and easy use as a python library for inference.
+At the moment is just making it more accessible as a package to other pieces of codes to import and perform inference.
+Upcoming changes will allow for re-training and evaluation.
+
+
+
+Currently the package allows the following:
+
+```python
+import cv2
+from east.model import EASTPredictor
+
+img = cv2.imread("some-text-picture-path")
+
+m = EASTPredictor()
+m.load("your-checkpoint-path")
+m.predict(img)  # returns the text bbox coordinates
+```
+
+
+
+To download a pre-trained model checkpoint please see the [download section](#Download).
+
+
 
 ---
 
@@ -47,7 +71,7 @@ The Makefile `east/lanms/` has been modified to avoid issues with gcc < 6 and **
 If you find the same issue, please do the following:
 
 ```bash
-    python3-config --cflags
+python3-config --cflags
 ```
 
 Copy the output, remove `-fno-plt` and paste in the Makefile as:
@@ -63,9 +87,19 @@ make
 Finally:
 
 ```bash
-    sudo apt-get install libgeos-dev  # required for Shapely
-    pip install -r requirements.txt
+sudo apt-get install libgeos-dev  # required for Shapely
+pip install -r requirements.txt
 ```
+
+
+
+Alternatively:
+
+```bash
+pip install . -v
+```
+
+
 
 ### Download
 
@@ -75,7 +109,7 @@ Finally:
 To download the models automatically:
 
 ```bash
-    bash download_models.sh
+bash ./scripts/download_models.sh
 ```
 
 ### Train

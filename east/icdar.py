@@ -11,7 +11,7 @@ from shapely.geometry import Polygon
 
 import tensorflow as tf
 
-from east.data_util import GeneratorEnqueuer
+from east.utils.data_util import GeneratorEnqueuer
 
 tf.app.flags.DEFINE_string('training_data_path', '/data/ocr/icdar2015/',
                            'training dataset to use')
