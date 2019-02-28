@@ -7,9 +7,8 @@ import json
 import logging
 import numpy as np
 
-from flask import (Flask, request, render_template)
-
 from east.model import EASTPredictor
+from flask import (Flask, request, render_template)
 
 
 logger = logging.getLogger(__name__)
@@ -82,16 +81,12 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', default=8769, type=int)
     parser.add_argument('--checkpoint_path', default=checkpoint_path)
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
     return args
 
 
-def main():
-
-    # here to avoid issues with argparse adn tf.app.flags
-    import tensorflow as tf
-    tf.app.flags.DEFINE_string('checkpoint_path', '', '')
-    tf.app.flags.DEFINE_string('port', '', '')
+if __name__ == '__main__':
 
     args = get_args()
 
@@ -103,9 +98,5 @@ def main():
     predictor = EASTPredictor()
     predictor.load(args.checkpoint_path)
 
-    app.debug = False  # change this to True if you want to debug
+    app.debug = args.debug
     app.run('0.0.0.0', args.port)
-
-
-if __name__ == '__main__':
-    main()

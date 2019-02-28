@@ -15,10 +15,6 @@ from east.icdar import restore_rectangle
 from east.utils import resize_image, sort_poly
 
 
-tf.app.flags.DEFINE_integer('text_scale', 512, '')
-FLAGS = tf.app.flags.FLAGS
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -105,7 +101,7 @@ def loss(y_true_cls, y_pred_cls, y_true_geo, y_pred_geo, training_mask):
     return tf.reduce_mean(L_g * y_true_cls * training_mask) + classificationloss
 
 
-def def_model(images, weight_decay=1e-5, is_training=True):
+def def_model(images, weight_decay=1e-5, is_training=True, text_scale=512):
     '''
     define the model, we use slim's implemention of resnet
     '''
@@ -155,7 +151,7 @@ def def_model(images, weight_decay=1e-5, is_training=True):
                 g[3], 1, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None)
             # 4 channel of axis aligned bbox and 1 channel rotation angle
             geo_map = slim.conv2d(
-                g[3], 4, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) * FLAGS.text_scale
+                g[3], 4, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) * text_scale
             angle_map = (slim.conv2d(g[3], 1, 1, activation_fn=tf.nn.sigmoid,
                                      normalizer_fn=None) - 0.5) * np.pi / 2  # angle is between [-45, 45]
             F_geometry = tf.concat([geo_map, angle_map], axis=-1)
@@ -222,12 +218,12 @@ class EASTPredictor():
 
     def __init__(self):
         # intialize the tensorflow session
-        self.sess = tf.Session(
-            config=tf.ConfigProto(
-                allow_soft_placement=True))
+        self.graph = tf.Graph()
+        self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
 
         # build the model
-        self._build_model()
+        with self.graph.as_default():
+            self._build_model()
 
     def _build_model(self):
         # input placeholders and training vars
@@ -243,8 +239,7 @@ class EASTPredictor():
         self.f_score, self.f_geometry = def_model(self.input_images,
                                                   is_training=False)
 
-        variable_averages = tf.train.ExponentialMovingAverage(0.997,
-                                                              global_step)
+        variable_averages = tf.train.ExponentialMovingAverage(0.997, global_step)
         self.saver = tf.train.Saver(variable_averages.variables_to_restore())
 
     def load(self, checkpoint_path):

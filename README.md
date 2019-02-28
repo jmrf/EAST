@@ -30,7 +30,7 @@ To download a pre-trained model checkpoint please see the [download section](#Do
 
 **Known issues**:
 
-* tf.app.flags conflicts with argparse commandline arguments when importing model
+* `Train` and `eval` had not been tested yet
 * There are several hardcoded paths all around still (eg: /static/results/...)
 
 
@@ -179,9 +179,13 @@ Here are some test examples on icdar2015, enjoy the beautiful text boxes!
 ![image_4](demo_images/img_26.jpg)
 ![image_5](demo_images/img_75.jpg)
 
-### Troubleshooting
 
--   How to compile lanms on Windows ?
-    -   See https://github.com/argman/EAST/issues/120
 
-Please let me know if you encounter any issues(my email boostczc@gmail dot com).
+
+
+### Changes
+
+* General refactoring
+* Packaging as a python package installable through `pip install .`
+* tf.app.flags have been moved just to be imported when calling individual scripts. This is because `tf.app.flags` conflicts with `argparse` command-line arguments when importing model. A good discussion about it can be found [here](https://planspace.org/20170314-command_line_apps_and_tensorflow/).
+* Model creation is now on different graphs so multiple EAST Predictors can be instantiated simultaneously. 

@@ -7,36 +7,13 @@ from tensorflow.contrib import slim
 from east import model
 import east.icdar as icdar
 
-tf.app.flags.DEFINE_integer('input_size', 512, '')
-tf.app.flags.DEFINE_integer('batch_size_per_gpu', 14, '')
-tf.app.flags.DEFINE_integer('num_readers', 16, '')
-tf.app.flags.DEFINE_float('learning_rate', 0.0001, '')
-tf.app.flags.DEFINE_integer('max_steps', 100000, '')
-tf.app.flags.DEFINE_float('moving_average_decay', 0.997, '')
-tf.app.flags.DEFINE_string('gpu_list', '1', '')
-tf.app.flags.DEFINE_integer('save_checkpoint_steps', 1000, '')
-tf.app.flags.DEFINE_integer('save_summary_steps', 100, '')
-tf.app.flags.DEFINE_string('pretrained_model_path', None, '')
-tf.app.flags.DEFINE_string(
-    'checkpoint_path',
-    '/tmp/east_resnet_v1_50_rbox/',
-    '')
-tf.app.flags.DEFINE_boolean(
-    'restore',
-    False,
-    'whether to resotre from checkpoint')
-
-
-FLAGS = tf.app.flags.FLAGS
-
-gpus = list(range(len(FLAGS.gpu_list.split(','))))
-
 
 def tower_loss(images, score_maps, geo_maps,
                training_masks, reuse_variables=None):
     # Build inference graph
     with tf.variable_scope(tf.get_variable_scope(), reuse=reuse_variables):
-        f_score, f_geometry = model.def_model(images, is_training=True)
+        f_score, f_geometry = model.def_model(images, is_training=True,
+                                              text_scale=FLAGS.text_scale)
 
     model_loss = model.loss(score_maps, f_score,
                             geo_maps, f_geometry,
@@ -224,4 +201,11 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
+
+    # use tf.app.flags only when called as a script
+    from east.model_flags import FLAGS
+
+    global gpus
+    gpus = list(range(len(FLAGS.gpu_list.split(','))))
+
     tf.app.run()

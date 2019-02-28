@@ -7,19 +7,6 @@ import east.model as model
 from east.utils import (get_images, resize_image, sort_poly)
 
 
-tf.app.flags.DEFINE_string('gpu_list', '0', '')
-tf.app.flags.DEFINE_bool('no_write_images', False, 'do not write images')
-tf.app.flags.DEFINE_string('test_data_path',
-                           '/tmp/ch4_test_images/images/', '')
-tf.app.flags.DEFINE_string('checkpoint_path',
-                           '/tmp/east_icdar2015_resnet_v1_50_rbox/', '')
-tf.app.flags.DEFINE_string('output_dir',
-                           '/tmp/ch4_test_images/images/', '')
-
-
-FLAGS = tf.app.flags.FLAGS
-
-
 def main(argv=None):
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_list
@@ -61,7 +48,7 @@ def main(argv=None):
                                            input_images: [im_resized]})
                 timer['net'] = time.time() - start
 
-                boxes, timer = detect(
+                boxes, timer = model.detect(
                     score_map=score, geo_map=geometry, timer=timer)
                 print('{} : net {:.0f}ms, restore {:.0f}ms, nms {:.0f}ms'.format(
                     im_fn, timer['net'] * 1000, timer['restore'] * 1000, timer['nms'] * 1000))
@@ -101,4 +88,8 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
+
+    # use tf.app.flags only when called as a script
+    from east.model_flags import FLAGS
+
     tf.app.run()
